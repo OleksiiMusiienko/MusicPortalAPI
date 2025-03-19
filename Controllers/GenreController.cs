@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MusicPortal.Models;
 using Portal.BLL.DTO;
 using Portal.BLL.Interfaces;
-using Portal.DAL.Entities;
 
 namespace MusicPortal.Controllers
 {
-    public class GenreController : Microsoft.AspNetCore.Mvc.Controller
+    [ApiController]
+    [Route("api/Genres")]
+    public class GenreController : ControllerBase
     {
         private readonly IGenreService _context;
         private readonly ISongService _songService;
@@ -15,75 +15,54 @@ namespace MusicPortal.Controllers
             _context = context;
             _songService = songService;
         }
-        public async Task <IActionResult> Index()
+        
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<GenreDTO>>> GetGenres()
         {
-            return View(await _context.GetAllGenres());
-        }
-        public IActionResult Create()
-        {
-            if (HttpContext.Session.GetInt32("Admin") == null)
+            var genres = await _context.GetAllGenres();
+            if(genres == null)
             {
-                HttpContext.Session.Clear();
-                ViewBag.UserId = null;
+                return NotFound();
             }
-            return View();
+            return Ok(genres);
         }
-       
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<GenreDTO>> GetGenre(int id)
+        {
+            var genre = await _context.GetGenreById(id);
+            if (genre == null)
+            {
+                return NotFound();
+            }
+            return new ObjectResult(genre);
+        }
+
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name")] GenreDTO gen)
+        public async Task<ActionResult<GenreDTO>> PostGenre(GenreDTO genre)
         {
-            GenreDTO genDto = await _context.GetGenreByName(gen.Name);
-            if (genDto != null)
+            if(!ModelState.IsValid)
             {
-                ModelState.AddModelError("", "Такой жанр есть!");
-                return View(genDto);
+                return BadRequest(ModelState);
             }
-            genDto = new GenreDTO();
-            if (ModelState.IsValid)
-            {
-                genDto.Name = gen.Name;
-                await _context.CreateGenre(genDto);                
-            }
-            return RedirectToAction("Index");
+            await _context.CreateGenre(genre);
+            return Ok(genre); 
         }
 
-        public async Task<IActionResult> Delete(int? id)
+        [HttpDelete]
+        public async Task<ActionResult<GenreDTO>> DeleteGenre(int id)
         {
-            if (id == null)
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var genre =await _context.GetGenreById(id);
+            if (genre == null)
             {
                 return NotFound();
             }
-
-            var gen = await _context.GetGenreById((int)id);
-            if (gen == null)
-            {
-                return NotFound();
-            }
-
-            return View(gen);
+            await _context.DeleteGenre(genre.Id);
+            return Ok("Жанр удален.");
         }
-
-        // POST: Users/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {           
-            GenreDTO gen = await _context.GetGenreById((int)id);
-            var songs = await _songService.GetSongsByGenre(gen);
-            if (songs != null)
-            {
-                foreach (var song in songs)
-                {
-                    await _songService.Delete(song.Id);
-                }
-            }
-            if (gen != null)
-            {
-                await _context.DeleteGenre(id);
-            }
-            return RedirectToAction(nameof(Index));
-        }
-
     }
 }
