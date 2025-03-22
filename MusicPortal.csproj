@@ -14,4 +14,8 @@
     <ProjectReference Include="..\Portal.BLL\Portal.BLL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\data\" />
+  </ItemGroup>
+
 </Project>

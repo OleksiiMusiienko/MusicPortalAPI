@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Portal.BLL.DTO;
 using Portal.BLL.Interfaces;
+using MusicPortal.Models;
 
 namespace MusicPortal.Controllers
 {
@@ -43,26 +44,31 @@ namespace MusicPortal.Controllers
         }
 
         [HttpPost]
-        public async Task <ActionResult<SongDTO>> PostSong(SongDTO songDTO,  IFormFile uploadedFile)
+        public async Task <ActionResult<SongDTO>> PostSong([FromForm] string name, [FromForm] string author, [FromForm] int genreId, [FromForm] string genre, [FromForm] IFormFile file)
         {
-            var songsByAuthor = await _context.GetSongsByAuthor(songDTO.Author!);
-            SongDTO sdto = songsByAuthor.Where(s => s.Name == songDTO.Name).FirstOrDefault();
+            if (file == null)
+                return BadRequest("Файл не загружен");
 
-            if (sdto != null)
+            var songsByAuthor = await _context.GetSongsByAuthor(author);
+            SongDTO songDTO = songsByAuthor.Where(s => s.Name == name).FirstOrDefault();
+
+            if (songDTO != null)
             {
-                ModelState.AddModelError("", "Такая песня есть!");
-                return BadRequest(ModelState);                
+                return BadRequest("Такая песня есть");
             }
             else
             {
-                if (ModelState.IsValid && uploadedFile != null)
+                if (ModelState.IsValid)
                 {
-                    await UploadSong(songDTO, uploadedFile);
+                    songDTO = new SongDTO();
+                    songDTO.Name = name;
+                    songDTO.Author = author; 
+                    songDTO.GenreId = genreId;
+                    songDTO.Genre = genre;
+                    await UploadSong(songDTO, file);
                     await _context.Create(songDTO);
                 }
-            }
-            //ViewBag.Genres = new SelectList(await _genreService.GetAllGenres(), "Id", "Name", songDTO.GenreId);
-
+            }          
             return new ObjectResult(songDTO);
         }
         
@@ -93,18 +99,18 @@ namespace MusicPortal.Controllers
                     return NotFound();
                 }
             }
-            return Ok("Песня обновлена.");
+            return new ObjectResult(songDTO);
         }
 
-        [HttpDelete]
-        public async Task<ActionResult<SongDTO>> Delete(int id)
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<SongDTO>> DeleteSong(int id)
         {
             var song = await _context.GetSongById(id);
             if (song != null)
             {
                 await _context.Delete(id);
             }
-            return Ok("Песня удалена.");
+            return Ok(id);
         }
        
     }

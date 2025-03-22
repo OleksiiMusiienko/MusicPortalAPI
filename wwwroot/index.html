@@ -1,0 +1,46 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Старница администратора</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.0/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/site.css" />
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-2.2.0.min.js"></script>
+</head>
+<body style="background-image:image-set()">
+    <h1>Кабинет администратора</h1>
+    <div id="form">
+        <form name="songForm">
+            <input type="hidden" name="id" value="0" />
+            <input type="hidden" name="path" value="0" />
+            <div class="form-group">
+                <label for="name">Название:</label>
+                <input class="form-control" name="name" />
+            </div>
+            <div class="form-group">
+                <label for="author">Автор:</label>
+                <input class="form-control" name="author" />
+            </div>
+
+            <div class="form-group">
+                <label for="genre">Жанр:</label>
+                <select id="selGenres" class="form-control"></select>
+            </div>
+            <div class="form-group">
+                <input id="inputFile" type="file" name="uploadedFile" /><br>
+            </div>
+            <div class="panel-body">
+                <a id="submit" class="btn btn-primary">Сохранить</a>
+                <a id="reset" class="btn btn-primary">Сбросить</a>
+            </div>
+
+        </form>
+    </div>
+    <table class="table table-condensed table-striped col-md-6">
+        <thead><tr><th>Id</th><th>Название</th><th>Автор</th><th>Жанр</th><th>Путь</th></tr></thead>
+        <tbody></tbody>
+    </table>
+</body>
+</html>
+
+<script src="js/site.js"></script>
